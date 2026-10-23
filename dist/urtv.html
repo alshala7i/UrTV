@@ -189,6 +189,7 @@
   .panel .sub b{color:#F0E6D0;font-weight:500}
 
   .p-prayer{text-align:right}
+  html.noprayer .p-prayer{visibility:hidden}
   .p-prayer .big{justify-content:flex-start}
   .p-mid{text-align:center}
   .p-mid .big{display:block;text-align:center;line-height:1.06}
@@ -334,7 +335,11 @@ const CONFIG = {
   latitude: _num('lat', 24.7136),
   longitude: _num('lon', 46.6753),
   timezone: _Q.get('tz') || 'Asia/Riyadh',
-  prayerMethod: 4,
+  // Aladhan's calculation method: #method=4 Umm al-Qura (Saudi, the default), 8 Gulf, 9 Kuwait, 10 Qatar, 16 Dubai,
+  // 5 Egypt, 3 Muslim World League, 13 Turkey (Prefs.PRAYER_METHODS)
+  prayerMethod: (m => [3,4,5,8,9,10,13,16].includes(m) ? m : 4)(_num('method', 4)),
+  // #prayers=0 hides the next-prayer block under the clock (times still load: Ramadan's iftar needs them)
+  prayers: _Q.get('prayers') !== '0',
   // followed teams in priority order: #teams=id,id,... (up to 10); older builds send team1/team2
   teamIds: (_Q.has('teams') ? _Q.get('teams').split(',')
             : [_Q.has('team1') ? _Q.get('team1') : '136013', _Q.has('team2') ? _Q.get('team2') : '136137'])
@@ -1249,6 +1254,7 @@ function boot(){
   if(wxCity) wxCity.textContent = CONFIG.city;
   const cs = document.getElementById('clock-sub');
   if(cs) cs.textContent = 'بتوقيت ' + CONFIG.city;
+  if(!CONFIG.prayers) document.documentElement.classList.add('noprayer');
   document.title = 'شاشة تلفزيونك';
   applyBackground(true);
   loadPhotoIndex().then(() => applyBackground(true));

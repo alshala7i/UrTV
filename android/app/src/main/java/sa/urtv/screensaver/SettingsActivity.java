@@ -92,6 +92,8 @@ public class SettingsActivity extends Activity {
 
         header("الموقع");
         row("المدينة", prefs.city()[0], R.drawable.ic_place, new Runnable() { public void run() { pickCity(); } });
+        row("الصلاة القادمة تحت الساعة", prefs.showPrayers() ? "تظهر" : "مخفية", R.drawable.ic_eye, new Runnable() { public void run() {
+            prefs.setShowPrayers(!prefs.showPrayers()); render(); } });
 
         header("المباريات");
         row("الفرق المتابعة (" + arabicNum(prefs.teams().size()) + "/" + arabicNum(Prefs.MAX_TEAMS) + ")", teamsLabel(),
