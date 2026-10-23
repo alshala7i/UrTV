@@ -248,6 +248,8 @@ itself) and tell me. Some TCL firmware keeps its own home: then `SKIP_LAUNCHER=1
 
 ```
 optimize/saver.sh cities                          # find my city, then: optimize/saver.sh city <name>   (not listed: city <name> <lat> <lon>)
+optimize/saver.sh tz <zone>                       # ONLY for a city outside Saudi Arabia (Kuwait: Asia/Kuwait), then:
+optimize/saver.sh method <n>                      # its prayer calculation (Kuwait 9, Qatar 10, Dubai 16, Gulf 8, Egypt 5)
 optimize/saver.sh find-team <club as I wrote it>  # Arabic is fine (الهلال): one call per club, Saudi clubs first;
                                                   # then: optimize/saver.sh teams <id:Name> <id:Name> ...  (my order)
 optimize/saver.sh card <one of: verse, shows, prayers, forecast, matches, none>   # beside the clock (verse unless I said otherwise)

@@ -8,6 +8,7 @@ import android.provider.Settings;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * The screensaver's settings from ADB, for agents (people use SettingsActivity). Only the shell can send
@@ -18,13 +19,15 @@ import java.util.List;
  *   am broadcast -n sa.urtv.screensaver/.SaverReceiver -a sa.urtv.screensaver.SET
  *       [--es city 'الرس'] [--es lat 25.86 --es lon 43.49] [--es teams '136013:Al-Hilal,150643:Al-Zulfi']
  *       [--es panel prayers] [--es home_panel none] [--es minrating 7] [--es genres Drama,Comedy] [--es langs English]
- *       [--es photos 30] [--es idle 10]
+ *       [--es photos 30] [--es idle 10] [--es tz Asia/Kuwait] [--es method 9] [--es prayers off]
  *   am broadcast -n sa.urtv.screensaver/.SaverReceiver -a sa.urtv.screensaver.UPDATE
  *
  * photos = minutes between background photos (Prefs.PHOTO_MINUTES). idle = minutes before the TV starts the
  * screensaver (Prefs.IDLE_MINUTES): this is the system's screen_off_timeout, which a receiver (it runs as this
  * app, not as the shell) may write only when the app holds WRITE_SETTINGS; otherwise it says so and
- * optimize/saver.sh sets it from the shell instead. Nothing changes unless the extra is given.
+ * optimize/saver.sh sets it from the shell instead. tz = the city's time zone (an Olson id), method = Aladhan's
+ * prayer calculation method (Prefs.PRAYER_METHODS), prayers = on|off for the next-prayer block under the clock.
+ * Nothing changes unless the extra is given.
  *
  * The answer is in the "data" of am's output. Unknown values are refused with a message, nothing half-saved.
  */
@@ -115,6 +118,15 @@ public class SaverReceiver extends BroadcastReceiver {
                 return "error: idle not allowed: this app may not change system settings on this TV"
                     + " (the TV's own screensaver settings can, or the shell: settings put system screen_off_timeout)";
         }
+        String tz = i.getStringExtra("tz");
+        if (tz != null && !Arrays.asList(TimeZone.getAvailableIDs()).contains(tz))
+            return "error: tz is a time zone id like Asia/Riyadh, Asia/Kuwait, Asia/Dubai";
+        String method = i.getStringExtra("method");
+        if (method != null && !isIn(method, Prefs.PRAYER_METHODS))
+            return "error: method is one of " + names(Prefs.PRAYER_METHODS);
+        String prayers = i.getStringExtra("prayers");
+        if (prayers != null && !prayers.equals("on") && !prayers.equals("off"))
+            return "error: prayers is on or off";
         List<String> genres = codes(i.getStringExtra("genres"), Prefs.GENRES);
         List<String> langs = codes(i.getStringExtra("langs"), Prefs.LANGS);
         if (genres != null && genres.contains(null)) return "error: genres are " + names(Prefs.GENRES);
@@ -134,6 +146,9 @@ public class SaverReceiver extends BroadcastReceiver {
         if (home != null) p.setHomePanel(home);
         if (rating != null) p.setMinRating(rating);
         if (photos != null) p.setPhotoMinutes(photos);
+        if (tz != null) p.setTz(tz);
+        if (method != null) p.setPrayerMethod(method);
+        if (prayers != null) p.setShowPrayers(prayers.equals("on"));
         if (genres != null) p.setList("genres", genres);
         if (langs != null) p.setList("langs", langs);
         return "saved\n" + describe(c, p);
@@ -146,6 +161,7 @@ public class SaverReceiver extends BroadcastReceiver {
             + "\npanel: " + p.panel() + "\nhome_panel: " + p.homePanel()
             + "\nminrating: " + p.minRating()
             + "\nphotos: " + p.photoMinutes()
+            + "\ntz: " + p.tz() + "\nmethod: " + p.prayerMethod() + "\nprayers: " + (p.showPrayers() ? "on" : "off")
             + "\nidle: " + idle(Prefs.idleMs(c))
             + "\ngenres: " + Prefs.join(p.list("genres"), ",") + "\nlangs: " + Prefs.join(p.list("langs"), ",")
             + "\nautoupdate: " + p.autoUpdate();
@@ -158,7 +174,11 @@ public class SaverReceiver extends BroadcastReceiver {
     }
 
     private static boolean isPanel(String v) {
-        for (String[] x : Prefs.PANELS) if (x[0].equals(v)) return true;
+        return isIn(v, Prefs.PANELS);
+    }
+
+    private static boolean isIn(String v, String[][] table) {
+        for (String[] x : table) if (x[0].equals(v)) return true;
         return false;
     }
 

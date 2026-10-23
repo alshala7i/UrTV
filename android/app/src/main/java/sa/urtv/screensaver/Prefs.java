@@ -12,7 +12,13 @@ import java.util.List;
 
 /** Everything the user picks in settings, and the dashboard URL built from it. */
 final class Prefs {
-    static final String TZ = "Asia/Riyadh";
+    static final String TZ = "Asia/Riyadh";   // until ADB sets another (SaverReceiver: --es tz)
+
+    // Aladhan's prayer calculation method (sent to the page as #method=), Arabic label; Umm al-Qura by default
+    static final String[][] PRAYER_METHODS = {
+        {"4", "أم القرى"}, {"8", "منطقة الخليج"}, {"9", "الكويت"}, {"10", "قطر"}, {"16", "دبي"},
+        {"5", "الهيئة المصرية"}, {"3", "رابطة العالم الإسلامي"}, {"13", "تركيا"},
+    };
 
     // TheSportsDB id, Arabic name; more teams come from the in-app search
     static final String[][] TEAM_PRESETS = {
@@ -84,6 +90,17 @@ final class Prefs {
     void setCity(String name, String lat, String lon) {
         sp.edit().putString("cityName", name).putString("cityLat", lat).putString("cityLon", lon).apply();
     }
+
+    /** The city's time zone, for the clock and prayer times; Riyadh's until ADB sets another. */
+    String tz() { return sp.getString("tz", TZ); }
+    void setTz(String v) { sp.edit().putString("tz", v).apply(); }
+
+    String prayerMethod() { return sp.getString("prayerMethod", "4"); }
+    void setPrayerMethod(String v) { sp.edit().putString("prayerMethod", v).apply(); }
+
+    /** The next-prayer block under the clock; on unless the user turns it off. */
+    boolean showPrayers() { return sp.getBoolean("showPrayers", true); }
+    void setShowPrayers(boolean v) { sp.edit().putBoolean("showPrayers", v).apply(); }
 
     static final int MAX_TEAMS = 10;
 
@@ -166,7 +183,9 @@ final class Prefs {
         List<String> ids = new ArrayList<>();
         for (String s : shows()) ids.add(s.split("\\|", 2)[0]);
         return "city=" + Uri.encode(city[0]) + "&lat=" + city[1] + "&lon=" + city[2]
-            + "&tz=" + Uri.encode(TZ)
+            + "&tz=" + Uri.encode(tz())
+            + "&method=" + prayerMethod()
+            + "&prayers=" + (showPrayers() ? "1" : "0")
             + "&teams=" + join(teamIds(), ",")
             + "&panel=" + panel()
             + "&week=" + ("none".equals(panel()) ? "0" : "1")   // for a page older than #panel

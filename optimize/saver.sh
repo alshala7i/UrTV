@@ -17,6 +17,10 @@
 #   optimize/saver.sh photos 15                    change the photo every N minutes: 5 10 15 30 60 (default 30)
 #   optimize/saver.sh idle 10                      the TV starts the screensaver after N idle minutes: 1 2 5 10 15 30
 #                                                  (the TV's own timer; left alone unless you run this)
+#   optimize/saver.sh tz Asia/Kuwait               the city's time zone, for the clock and prayers (default Asia/Riyadh)
+#   optimize/saver.sh method 9                     prayer calculation: 4 Umm al-Qura (default), 8 Gulf, 9 Kuwait,
+#                                                  10 Qatar, 16 Dubai, 5 Egypt, 3 Muslim World League, 13 Turkey
+#   optimize/saver.sh prayers off                  the next prayer under the clock: on (default) or off
 #   optimize/saver.sh update                       download the latest screen now
 # Only ADB can change these (sa.urtv.screensaver/.SaverReceiver needs the shell's DUMP).
 set -euo pipefail
@@ -52,6 +56,9 @@ case "${1:-}" in
   langs)     send SET "--es langs $(quote "${2-}")" ;;
   minrating) send SET "--es minrating $(quote "${2:?usage: optimize/saver.sh minrating 7}")" ;;
   photos)    send SET "--es photos $(quote "${2:?usage: optimize/saver.sh photos 15}")" ;;
+  tz)        send SET "--es tz $(quote "${2:?usage: optimize/saver.sh tz Asia/Kuwait}")" ;;
+  method)    send SET "--es method $(quote "${2:?usage: optimize/saver.sh method 9}")" ;;
+  prayers)   send SET "--es prayers $(quote "${2:?usage: optimize/saver.sh prayers on|off}")" ;;
   idle)
     # the app may change the TV's timer only if the owner allowed it; the shell always may
     out=$(send SET "--es idle $(quote "${2:?usage: optimize/saver.sh idle 10}")") || true
@@ -64,5 +71,5 @@ case "${1:-}" in
       *) echo "$out" ;;
     esac ;;
   find-team) shift; "$PY" -I optimize/find-team.py "$@" ;;   # Arabic or English name
-  *) sed -n '2,20p' "$0"; exit 1 ;;
+  *) sed -n '2,24p' "$0"; exit 1 ;;
 esac

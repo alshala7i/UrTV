@@ -149,6 +149,26 @@ for (const [hash, panel, shown] of [['', 'verse', true], ['week=0', 'none', fals
   await ctx.close();
 }
 
+// ---- prayers: #method= (anything unknown = 4), #prayers=0 hides the next prayer, #tz= moves the clock
+for (const [hash, method, shown] of [['', 4, true], ['method=9', 9, true], ['method=7', 4, true],
+                                      ['prayers=0', 4, false], ['prayers=1&method=16', 16, true]]) {
+  const { p, ctx, errors } = await open('tv.html', hash);
+  const r = await p.evaluate(() => [CONFIG.prayerMethod, getComputedStyle(document.querySelector('.p-prayer')).visibility !== 'hidden']);
+  check(`link #${hash || '(empty)'} → method ${method}, next prayer ${shown ? 'shown' : 'hidden'}`,
+    !errors.length && r[0] === method && r[1] === shown, JSON.stringify(r) + errors.join('; '));
+  await ctx.close();
+}
+for (const tz of ['Asia/Riyadh', 'Asia/Dubai', 'Africa/Cairo']) {
+  const { p, ctx, errors } = await open('tv.html', 'tz=' + encodeURIComponent(tz));
+  const r = await p.evaluate(tz => {
+    const toN = s => +s.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+    const want = +new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour: '2-digit', hour12: false }).format(new Date()) % 12 || 12;
+    return [toN(document.getElementById('ck-h').textContent), want];
+  }, tz);
+  check(`link #tz=${tz} → the clock shows that zone's hour`, !errors.length && r[0] === r[1], JSON.stringify(r) + errors.join('; '));
+  await ctx.close();
+}
+
 // ---- card-only mode for the launcher: transparent, only the card, no photo
 for (const panel of ['prayers', 'verse', 'shows']) {
   const { p, ctx, errors } = await open('tv.html', `widget=1&panel=${panel}`, { width: 461, height: 250 });
