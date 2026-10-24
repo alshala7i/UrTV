@@ -1,0 +1,2 @@
+#!/bin/sh
+echo "input $*" >> "$FAKE_TV_DIR/state/log"

@@ -1,0 +1,3 @@
+#!/bin/sh
+# pretend TV: whatever is HOME is in front
+echo "  topResumedActivity=ActivityRecord{1a2b u0 $(cat "$FAKE_TV_DIR/state/home") t5}"

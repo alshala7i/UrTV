@@ -1,0 +1,10 @@
+#!/bin/sh
+# pretend TV: the HOME app in state/home (Google TV's own until something takes the role)
+S="$FAKE_TV_DIR/state"; [ -f "$S/home" ] || echo com.google.android.apps.tv.launcherx/com.google.android.apps.tv.launcherx.home.HomeActivity > "$S/home"
+echo "cmd $*" >> "$S/log"
+case "$1 $2" in
+  "package resolve-activity") echo "priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true"; cat "$S/home" ;;
+  "role add-role-holder") [ "$6" = sa.urtv.home ] && echo sa.urtv.home/.MainActivity > "$S/home"
+                          [ "$6" = com.google.android.apps.tv.launcherx ] && echo com.google.android.apps.tv.launcherx/com.google.android.apps.tv.launcherx.home.HomeActivity > "$S/home"; true ;;
+  "package set-home-activity") echo "$5" > "$S/home" ;;
+esac

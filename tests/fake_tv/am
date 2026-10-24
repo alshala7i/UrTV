@@ -1,0 +1,10 @@
+#!/bin/sh
+# pretend TV: the screensaver's and the home's receivers answer like the real ones
+S="$FAKE_TV_DIR/state"; echo "am $*" >> "$S/log"
+case "$*" in
+  *SaverReceiver*SET*) echo "$*" > "$S/saver"; echo 'Broadcasting: Intent { flg=0x400000 cmp=sa.urtv.screensaver/.SaverReceiver }'
+                      printf 'Broadcast completed: result=0, data="saved\ncity: x"\n' ;;
+  *SaverReceiver*) echo 'Broadcast completed: result=0, data="update: ok"' ;;
+  *DockReceiver*LIST_APPS*) printf 'Broadcast completed: result=0, data="com.google.android.youtube.tv | YouTube\ncom.netflix.ninja | Netflix"\n' ;;
+  *DockReceiver*SET_DOCK*) echo "$*" > "$S/dock"; echo 'Broadcast completed: result=0, data="dock: com.netflix.ninja"' ;;
+esac

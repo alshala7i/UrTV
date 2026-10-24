@@ -1,0 +1,10 @@
+#!/bin/sh
+# pretend TV for tests/SetupTest.java: a TCL Google TV on Android 11
+case "$1" in
+  ro.product.manufacturer) echo TCL ;;
+  ro.product.model) echo "Smart TV Pro" ;;
+  ro.build.version.release) echo 11 ;;
+  ro.serialno) echo FAKE123 ;;
+  ro.product.cpu.abilist) echo arm64-v8a,armeabi-v7a,armeabi ;;
+  sys.boot_completed) echo 1 ;;
+esac

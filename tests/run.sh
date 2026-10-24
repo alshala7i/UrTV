@@ -11,4 +11,5 @@ python3 tests/find_tv_test.py
 python3 tests/find_team_test.py
 python3 tests/team_search_test.py
 python3 tests/team_ids_test.py
+tests/adb_test.sh
 node tests/page.test.mjs
