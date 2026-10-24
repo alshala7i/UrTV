@@ -223,12 +223,33 @@ public class MainActivity extends Activity {
     }
 
     private void panel() {
-        question(5, "وش يطلع جنب الساعة؟", null);
-        String now = answers.getString("panel", "verse");
-        for (String[] p : Places.PANELS) {
-            String sub = "matches".equals(p[0]) && list("teams").isEmpty() ? "ما اخترت أندية، فبتكون فاضية" : null;
-            option(p[1], sub, p[0].equals(now), () -> { save("panel", p[0]); next(this::prayers); });
-        }
+        question(5, "وش يطلع جنب الساعة؟", "اختر واحد أو أكثر: إذا اخترت أكثر من واحد، يتبادلون كل 25 ثانية.");
+        final List<String> on = new ArrayList<>(Arrays.asList(answers.getString("panel", "verse").split(",")));
+        on.remove("none");
+        LinearLayout cards = new LinearLayout(this);
+        cards.setOrientation(LinearLayout.VERTICAL);
+        page.addView(cards);
+        final Runnable[] fill = new Runnable[1];
+        fill[0] = () -> {
+            cards.removeAllViews();
+            for (String[] p : Places.PANELS) {
+                if ("none".equals(p[0])) continue;
+                String sub = "matches".equals(p[0]) && list("teams").isEmpty() ? "ما اخترت أندية، فبتكون فاضية" : null;
+                boolean has = on.contains(p[0]);
+                cards.addView(optionView((has ? "✓ " : "") + p[1], sub, has, () -> {
+                    if (!on.remove(p[0])) on.add(p[0]);
+                    fill[0].run();
+                }));
+            }
+        };
+        fill[0].run();
+        space(8);
+        button("التالي", true, () -> {
+            if (on.isEmpty()) { note("اختر واحد على الأقل، أو «ولا شي»"); return; }
+            save("panel", String.join(",", on));
+            next(this::prayers);
+        });
+        button("ولا شي جنب الساعة", false, () -> { save("panel", "none"); next(this::prayers); });
     }
 
     private void prayers() {

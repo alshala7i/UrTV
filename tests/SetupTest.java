@@ -66,7 +66,7 @@ public class SetupTest {
 
         Setup.Choices c = new Setup.Choices();
         c.city = "الكويت"; c.lat = "29.3759"; c.lon = "47.9774"; c.tz = "Asia/Kuwait"; c.method = "9";
-        c.teams.add("137721:Al-Ahli"); c.panel = "prayers"; c.prayers = false;
+        c.teams.add("137721:Al-Ahli"); c.panel = "prayers,matches"; c.prayers = false;
 
         s.probe();
         check("the TV is identified", s.serial.equals("FAKE123") && s.model.contains("TCL"), s.serial + " " + s.model);
@@ -81,7 +81,7 @@ public class SetupTest {
         String saver = read(new File(state, "saver"));
         check("choices sent in one SET: city, tz, method, prayers off, card, team",
             saver.contains("--es city الكويت") && saver.contains("--es lat 29.3759") && saver.contains("--es tz Asia/Kuwait")
-            && saver.contains("--es method 9") && saver.contains("--es prayers off") && saver.contains("--es panel prayers")
+            && saver.contains("--es method 9") && saver.contains("--es prayers off") && saver.contains("--es panel prayers,matches")
             && saver.contains("--es teams 137721:Al-Ahli") && saver.contains("--es home_panel none"), saver);
         check("our home is Home", read(new File(state, "home")).contains("sa.urtv.home"), read(new File(state, "home")));
         check("the safety switch was armed with the stock home", read(new File(state, "log")).contains("deadman.sh com.google.android.apps.tv.launcherx/"), "");

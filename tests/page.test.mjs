@@ -149,6 +149,23 @@ for (const [hash, panel, shown] of [['', 'verse', true], ['week=0', 'none', fals
   await ctx.close();
 }
 
+// ---- several cards beside the clock take turns: #panel=a,b (unknown ones dropped, none only alone)
+for (const [hash, want] of [['panel=prayers,verse', ['prayers', 'verse']], ['panel=verse,bogus,verse', ['verse']],
+                            ['panel=none,forecast', ['forecast']], ['panel=matches,forecast,prayers', ['matches', 'forecast', 'prayers']]]) {
+  const { p, ctx, errors } = await open('tv.html', 'teams=136013&' + hash);
+  const r = await p.evaluate(() => {
+    const seen = [CONFIG.panel], titles = [document.getElementById('week-hd').textContent];
+    for (let i = 0; i < CONFIG.panels.length; i++) { nextPanel(); seen.push(CONFIG.panel); titles.push(document.getElementById('week-hd').textContent); }
+    return { panels: CONFIG.panels, seen, titles, shown: getComputedStyle(document.querySelector('.week')).display !== 'none' };
+  });
+  const turns = want.concat([want[0]]);
+  check(`link #${hash} → cards ${want.join(', ')}, each in turn`, !errors.length && JSON.stringify(r.panels) === JSON.stringify(want)
+    && JSON.stringify(r.seen) === JSON.stringify(turns) && r.shown, JSON.stringify(r) + errors.join('; '));
+  if (want.includes('prayers'))
+    check(`link #${hash} → the prayers card has its title when its turn comes`, r.titles[r.seen.indexOf('prayers')] === 'مواقيت اليوم', JSON.stringify(r.titles));
+  await ctx.close();
+}
+
 // ---- prayers: #method= (anything unknown = 4), #prayers=0 hides the next prayer, #tz= moves the clock
 for (const [hash, method, shown] of [['', 4, true], ['method=9', 9, true], ['method=7', 4, true],
                                       ['prayers=0', 4, false], ['prayers=1&method=16', 16, true]]) {

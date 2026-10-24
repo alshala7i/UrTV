@@ -54,8 +54,11 @@ final class Places {
         {"forecast", "طقس الأيام الجاية"}, {"shows", "جديد المسلسلات"}, {"none", "لا شي"},
     };
 
+    /** "prayers,matches" -> "مواقيت الصلاة اليوم، مباريات أنديتك" */
     static String panelLabel(String v) {
-        for (String[] p : PANELS) if (p[0].equals(v)) return p[1];
-        return PANELS[0][1];
+        StringBuilder b = new StringBuilder();
+        for (String one : v.split(","))
+            for (String[] p : PANELS) if (p[0].equals(one)) b.append(b.length() > 0 ? "، " : "").append(p[1]);
+        return b.length() > 0 ? b.toString() : PANELS[0][1];
     }
 }

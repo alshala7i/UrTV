@@ -134,13 +134,32 @@ final class Prefs {
         {"matches", "مباريات فرقك القادمة"}, {"verse", "آية أو حديث اليوم"}, {"none", "لا شيء"},
     };
 
-    /** Older builds had an on/off switch for the card; off becomes "none", otherwise the verse card. */
+    /** The cards beside the clock, comma-separated; more than one take turns. Older builds had an on/off switch
+     *  for the card: off becomes "none", otherwise the verse card. */
     String panel() { return sp.getString("panel", sp.getBoolean("showWeek", true) ? "verse" : "none"); }
     void setPanel(String v) { sp.edit().putString("panel", v).apply(); }
+    boolean showsPanel(String one) { return java.util.Arrays.asList(panel().split(",")).contains(one); }
 
+    /** "prayers,matches" -> "مواقيت الصلاة اليوم، مباريات فرقك القادمة" */
     static String panelLabel(String v) {
-        for (String[] p : PANELS) if (p[0].equals(v)) return p[1];
-        return PANELS[0][1];
+        StringBuilder b = new StringBuilder();
+        for (String one : v.split(","))
+            for (String[] p : PANELS) if (p[0].equals(one)) b.append(b.length() > 0 ? "، " : "").append(p[1]);
+        return b.length() > 0 ? b.toString() : PANELS[0][1];
+    }
+
+    /** The cards in PANELS' order without repeats, "none" only alone; null if any is unknown or none is given. */
+    static String panels(String raw) {
+        List<String> want = java.util.Arrays.asList(raw.split(","));
+        for (String w : want) {
+            boolean known = false;
+            for (String[] p : PANELS) if (p[0].equals(w.trim())) known = true;
+            if (!known) return null;
+        }
+        List<String> out = new ArrayList<>();
+        for (String[] p : PANELS) for (String w : want) if (p[0].equals(w.trim()) && !out.contains(p[0])) out.add(p[0]);
+        if (out.size() > 1) out.remove("none");
+        return out.isEmpty() ? null : join(out, ",");
     }
 
     List<String> list(String key) {

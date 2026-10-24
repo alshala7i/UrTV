@@ -18,10 +18,11 @@ import java.util.TimeZone;
  *   am broadcast -n sa.urtv.screensaver/.SaverReceiver -a sa.urtv.screensaver.CITIES
  *   am broadcast -n sa.urtv.screensaver/.SaverReceiver -a sa.urtv.screensaver.SET
  *       [--es city 'الرس'] [--es lat 25.86 --es lon 43.49] [--es teams '136013:Al-Hilal,150643:Al-Zulfi']
- *       [--es panel prayers] [--es home_panel none] [--es minrating 7] [--es genres Drama,Comedy] [--es langs English]
+ *       [--es panel prayers,matches] [--es home_panel none] [--es minrating 7] [--es genres Drama,Comedy] [--es langs English]
  *       [--es photos 30] [--es idle 10] [--es tz Asia/Kuwait] [--es method 9] [--es prayers off]
  *   am broadcast -n sa.urtv.screensaver/.SaverReceiver -a sa.urtv.screensaver.UPDATE
  *
+ * panel = the cards beside the clock, comma-separated (more than one take turns); home_panel = one card.
  * photos = minutes between background photos (Prefs.PHOTO_MINUTES). idle = minutes before the TV starts the
  * screensaver (Prefs.IDLE_MINUTES): this is the system's screen_off_timeout, which a receiver (it runs as this
  * app, not as the shell) may write only when the app holds WRITE_SETTINGS; otherwise it says so and
@@ -102,7 +103,7 @@ public class SaverReceiver extends BroadcastReceiver {
             if (teams.size() > Prefs.MAX_TEAMS) return "error: at most " + Prefs.MAX_TEAMS + " teams";
         }
         String panel = i.getStringExtra("panel"), home = i.getStringExtra("home_panel");
-        if (panel != null && !isPanel(panel)) return "error: panel is one of " + panels();
+        if (panel != null && (panel = Prefs.panels(panel)) == null) return "error: panel is one or more of " + panels() + ", comma-separated";
         if (home != null && !isPanel(home)) return "error: home_panel is one of " + panels();
         String rating = i.getStringExtra("minrating");
         if (rating != null && !Arrays.asList(Prefs.MIN_RATINGS).contains(rating))
