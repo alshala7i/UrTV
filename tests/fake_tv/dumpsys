@@ -1,3 +1,4 @@
 #!/bin/sh
-# pretend TV: whatever is HOME is in front
+# pretend TV: whatever is HOME is in front; our apps are at the version in state/version (1 if unset)
+if [ "$1" = package ]; then echo "    versionCode=$(cat "$FAKE_TV_DIR/state/version" 2> /dev/null || echo 1) minSdk=21 targetSdk=34"; exit 0; fi
 echo "  topResumedActivity=ActivityRecord{1a2b u0 $(cat "$FAKE_TV_DIR/state/home") t5}"

@@ -434,6 +434,7 @@ public class MainActivity extends Activity {
                 Setup setup = new Setup(tv, new AndroidEnv(), this::say);
                 status("الحين بتطلع رسالة على التلفزيون: «Allow USB debugging?»\nاضغط Allow، وعلّم «Always allow».");
                 setup.probe();
+                setup.appVersion = getPackageManager().getPackageInfo(getPackageName(), 0).getLongVersionCode();
                 answers.edit().putString("host", h).apply();
                 setup.refreshChoices(choices());
                 status("شغّال… خلّ التطبيق مفتوح لين يخلص.");
