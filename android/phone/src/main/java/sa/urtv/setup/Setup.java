@@ -61,6 +61,8 @@ final class Setup {
 
     private final Tv tv;
     private final Env env;
+    /** this phone app's build number: the TV apps of the same release carry the same one (0 = unknown) */
+    long appVersion = 0;
     /** where uploads land on the TV (tests point it at a scratch folder) */
     String tmp = "/data/local/tmp";
     private final Tv.Log log;
@@ -393,6 +395,11 @@ final class Setup {
     void refreshChoices(Choices c) throws IOException {
         env.save("done:" + serial + ":settings", null);
         env.save("done:" + serial + ":check", null);
+        // TV apps older than this phone app may not take its choices (several cards…): install them again
+        if (appVersion > 0 && installedVersion("sa.urtv.screensaver") < appVersion)
+            env.save("done:" + serial + ":screensaver", null);
+        long home = installedVersion("sa.urtv.home");
+        if (appVersion > 0 && home > 0 && home < appVersion) env.save("done:" + serial + ":launcher", null);
         if (c.launcher && !tv.get("cmd package resolve-activity --brief -c android.intent.category.HOME -a android.intent.action.MAIN").contains("sa.urtv.home"))
             env.save("done:" + serial + ":launcher", null);
         if (c.extras) {
@@ -400,6 +407,13 @@ final class Setup {
             if (!have.contains("com.phlox.tvwebbrowser") || !have.contains("org.smarttube.stable"))
                 env.save("done:" + serial + ":extras", null);
         }
+    }
+
+    /** versionCode of an app on the TV; 0 when it is not there, Long.MAX_VALUE when the TV doesn't say */
+    long installedVersion(String pkg) throws IOException {
+        if (!tv.get("pm list packages " + pkg).contains("package:" + pkg)) return 0;
+        java.util.regex.Matcher m = Pattern.compile("versionCode=(\\d+)").matcher(tv.get("dumpsys package " + pkg + " | grep -m1 versionCode"));
+        return m.find() ? Long.parseLong(m.group(1)) : Long.MAX_VALUE;
     }
 
     void clearMarks() {

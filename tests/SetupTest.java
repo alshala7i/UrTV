@@ -99,6 +99,20 @@ public class SetupTest {
         s.run(c);
         check("a second run redoes nothing", read(new File(state, "log")).length() == before, "");
 
+        // a newer phone app than the TV apps: its next run installs them again, then sends the choices
+        s.appVersion = 5;
+        int logBefore = read(new File(state, "log")).length();
+        s.refreshChoices(c);
+        check("TV apps older than the phone app are marked to install again", !s.done("screensaver") && !s.done("launcher") && s.done("safe"), store.toString());
+        s.run(c);
+        String later = read(new File(state, "log")).substring(logBefore);
+        check("and are installed again, the choices sent again", later.contains("pm install -r") && later.contains("SaverReceiver")
+            && Arrays.stream(Setup.STEPS).allMatch(s::done), later);
+        Files.write(new File(state, "version").toPath(), "5\n".getBytes());
+        s.refreshChoices(c);
+        check("TV apps as new as the phone app are left alone", s.done("screensaver") && s.done("launcher"), store.toString());
+        s.run(c);
+
         // favourites
         String apps = s.dock("LIST_APPS", "");
         check("favourites list read from the home app", apps.contains("com.netflix.ninja | Netflix"), apps);
