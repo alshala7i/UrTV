@@ -346,7 +346,7 @@ public class MainActivity extends Activity {
             "التلفزيون شغال، مو في وضع الاستعداد",
             "شغّلت تصحيح الأخطاء من الخطوات اللي قبل",
             "الريموت قريب: التلفزيون بيطلب منك ضغطة موافقة وحدة",
-            charging ? "الجوال على الشاحن ✓" : "الجوال على الشاحن، لأن الإعداد ياخذ حوالي نص ساعة",
+            charging ? "الجوال على الشاحن ✓" : "الجوال على الشاحن، لأن الإعداد ياخذ ربع ساعة تقريباً",
         };
         for (String item : items) {
             CheckBox b = new CheckBox(this);
@@ -360,7 +360,7 @@ public class MainActivity extends Activity {
             boxes.add(b);
         }
         space(8);
-        small("خلّ التطبيق مفتوح طول الإعداد. التلفزيون بيعيد التشغيل مرة أو مرتين.");
+        small("خلّ التطبيق مفتوح طول الإعداد، وشاشة الجوال بتبقى شغالة.");
         space(12);
         button("ابدأ الإعداد", true, () -> {
             for (CheckBox b : boxes) if (!b.isChecked()) { note("علّم على كل النقاط أول"); return; }
@@ -415,7 +415,7 @@ public class MainActivity extends Activity {
                 setup.probe();
                 answers.edit().putString("host", h).apply();
                 setup.refreshChoices(choices());
-                status("شغّال… خلّ التطبيق مفتوح. التلفزيون بيعيد التشغيل مرة أو مرتين.");
+                status("شغّال… خلّ التطبيق مفتوح لين يخلص.");
                 setup.run(choices());
                 tv.close();
                 saveBool("finished", true);
@@ -508,7 +508,7 @@ public class MainActivity extends Activity {
         list.setOrientation(LinearLayout.VERTICAL);
         page.addView(list);
         final List<String> order = new ArrayList<>();
-        final Map<String, String> names = new HashMap<>();
+        final Map<String, String> names = new java.util.LinkedHashMap<>();   // in the home app's order
         LinearLayout bottom = new LinearLayout(this);
         bottom.setOrientation(LinearLayout.VERTICAL);
         page.addView(bottom);
