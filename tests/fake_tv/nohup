@@ -1,0 +1,3 @@
+#!/bin/sh
+# pretend TV: the safety switch is only recorded, never started
+echo "nohup $*" >> "$FAKE_TV_DIR/state/log"

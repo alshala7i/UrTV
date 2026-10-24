@@ -1,0 +1,8 @@
+#!/bin/sh
+# pretend TV: one file per setting in state/settings
+D="$FAKE_TV_DIR/state/settings"; mkdir -p "$D"; f="$D/$2.$3"
+case "$1" in
+  get) [ -f "$f" ] && cat "$f" || echo null ;;
+  put) echo "$4" > "$f" ;;
+  delete) rm -f "$f" ;;
+esac

@@ -1,0 +1,67 @@
+plugins {
+    id 'com.android.application'
+}
+
+// The phone app reuses the screensaver's city list and club search unchanged, and carries optimize/'s package
+// lists and safety switch: copied in at build time, so there is one copy of each in the repo.
+def shared = layout.buildDirectory.dir('generated/shared')
+def sharedJava = shared.map { it.dir('java') }
+def sharedAssets = shared.map { it.dir('assets') }
+def copyShared = tasks.register('copyShared', Copy) {
+    into shared
+    from('../app/src/main/java/sa/urtv/screensaver') {
+        include 'Cities.java', 'Teams.java', 'TeamSearch.java'
+        into 'java/sa/urtv/screensaver'
+    }
+    from('../../optimize/lists') { include '*.txt'; into 'assets/lists' }
+    from('../../optimize') { include 'deadman.sh'; into 'assets' }
+    from('../../assets/shared') { include 'teams.json'; into 'assets/shared' }
+    from('../launcher/src/main/assets/fonts') { into 'assets/fonts' }
+}
+
+android {
+    namespace 'sa.urtv.setup'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'sa.urtv.setup'
+        minSdk 26
+        targetSdk 34
+        // the same numbers as the TV apps and the release (v3.N)
+        versionCode((System.getenv('GITHUB_RUN_NUMBER') ?: '1') as int)
+        versionName "3.${System.getenv('GITHUB_RUN_NUMBER') ?: '0'}"
+    }
+
+    signingConfigs {
+        // the TV apps' key (repository secrets); a local build without it gets the debug key
+        if (System.getenv('ANDROID_KEYSTORE')) {
+            release {
+                storeFile file(System.getenv('ANDROID_KEYSTORE'))
+                storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                keyAlias 'urtv'
+                keyPassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.findByName('release') ?: signingConfigs.debug
+        }
+    }
+
+    sourceSets {
+        main {
+            java.srcDir sharedJava
+            assets.srcDir sharedAssets
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+tasks.named('preBuild') { dependsOn copyShared }

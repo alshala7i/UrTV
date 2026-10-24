@@ -45,6 +45,11 @@
 أعد الإعداد كله بأمر واحد، وإعداداتك باقية.
 <sub>`optimize/run.sh again`</sub>
 
+## أو من جوالك الأندرويد، بدون كمبيوتر
+
+نزّل [مركّب تلفزيونك](https://github.com/alshala7i/UrTV/releases/download/apk-latest/urtv-setup.apk) على جوالك وافتحه: يسألك عن نوع تلفزيونك ومدينتك وأنديتك، ويوريك كيف تفعّل وضع المطوّر، وبعدها يسوي الإعداد كامل من الجوال وأنت على نفس الواي فاي. وفيه زر يرجّع التلفزيون مثل ما كان.
+<sub>تجريبي: الكمبيوتر هو الطريقة المجرّبة على تلفزيونات كثيرة</sub>
+
 </div>
 
 ## Set it up in 3 steps
@@ -85,6 +90,11 @@ Redo the whole setup with one command, settings kept.
 stock home back if ours doesn't come up. The apps are built and signed by GitHub Actions from this repo (version
 3.N = the build number). The full prompt: [docs/SETUP-PROMPT.md](docs/SETUP-PROMPT.md). To build a different
 screen: [docs/RECREATE-PROMPT.md](docs/RECREATE-PROMPT.md).
+
+## Or from an Android phone, no computer
+
+Install [urtv-setup.apk](https://github.com/alshala7i/UrTV/releases/download/apk-latest/urtv-setup.apk) on the phone and open it: it asks for the TV's type, your city and clubs, shows how to turn on developer mode, then runs the whole setup from the phone on the same Wi-Fi (the steps of `optimize/run.sh`, without the memory measuring). It can also put the TV back as it came.
+<sub>New: the computer route above is the one tried on many TVs.</sub>
 
 ## What you get
 

@@ -1,0 +1,29 @@
+#!/bin/sh
+# pretend TV: packages in state/installed, the disabled ones in state/disabled, one per line
+S="$FAKE_TV_DIR/state"; touch "$S/installed" "$S/disabled" "$S/otherkey"
+has() { grep -qx "$1" "$2"; }
+del() { grep -vx "$1" "$2" > "$2.x" || true; mv "$2.x" "$2"; }
+echo "pm $*" >> "$S/log"
+case "$1" in
+  list)
+    shift 2; d=; [ "${1:-}" = -d ] && { d=1; shift; }
+    src="$S/installed"; [ -n "$d" ] && src="$S/disabled"
+    grep -F -- "${1:-}" "$src" | sed 's/^/package:/' ;;
+  disable-user)
+    p=$4; if has "$p" "$S/installed"; then has "$p" "$S/disabled" || echo "$p" >> "$S/disabled"; echo "Package $p new state: disabled-user"
+    else echo "Error: java.lang.IllegalArgumentException: Unknown package: $p"; fi ;;
+  enable)
+    p=$2; [ "$p" = --user ] && p=$4
+    if has "$p" "$S/installed"; then del "$p" "$S/disabled"; echo "Package $p new state: enabled"
+    else echo "Error: Unknown package: $p"; fi ;;
+  install)
+    f=$3; [ -f "$f" ] || { echo "Failure [file not found]"; exit 0; }
+    case "$(basename "$f")" in
+      urtv-screensaver.apk) p=sa.urtv.screensaver ;; urtv-home.apk) p=sa.urtv.home ;;
+      tvbro*) p=com.phlox.tvwebbrowser ;; SmartTube*) p=org.smarttube.stable ;; *) p=unknown ;;
+    esac
+    if has "$p" "$S/otherkey"; then echo "Failure [INSTALL_FAILED_UPDATE_INCOMPATIBLE: signatures do not match]"; exit 0; fi
+    has "$p" "$S/installed" || echo "$p" >> "$S/installed"; echo Success ;;
+  uninstall)
+    if has "$2" "$S/installed"; then del "$2" "$S/installed"; del "$2" "$S/otherkey"; echo Success; else echo "Failure [DELETE_FAILED_INTERNAL_ERROR]"; fi ;;
+esac
