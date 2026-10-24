@@ -341,9 +341,11 @@ const CONFIG = {
             : [_Q.has('team1') ? _Q.get('team1') : '136013', _Q.has('team2') ? _Q.get('team2') : '136137'])
     .map(x=>(x||'').trim()).filter(x=>/^\d+$/.test(x)).slice(0, 10),
   sportsKey: '123',
-  // the card beside the clock: shows | prayers | forecast | matches | verse | none (#week=0 from older builds = none)
-  panel: (p => ['shows','prayers','forecast','matches','verse','none'].includes(p) ? p : 'verse')
-         (_Q.get('panel') || (_Q.get('week') === '0' ? 'none' : 'verse')),
+  // the cards beside the clock, taking turns: #panel=prayers,matches (shows | prayers | forecast | matches | verse,
+  // or none alone; #week=0 from older builds = none). panel is the one on screen now.
+  panels: (l => l.length ? l : ['verse'])(((_Q.get('panel') || (_Q.get('week') === '0' ? 'none' : 'verse')).split(','))
+    .map(p => p.trim()).filter((p, i, a) => ['shows','prayers','forecast','matches','verse','none'].includes(p) && a.indexOf(p) === i)
+    .filter((p, i, a) => p !== 'none' || a.length === 1)),
   matchesPerPage: 2,
   matchPageMs: 15000,
   // minutes from adhan to iqama (Ministry of Islamic Affairs defaults); Friday Dhuhr has none
@@ -362,6 +364,7 @@ const CONFIG = {
   // #widget=1: only the card, on a transparent page (the launcher's home screen shows it)
   widget: _Q.get('widget') === '1',
 };
+CONFIG.panel = CONFIG.panels[0];
 
 const GREG = 'ar-SA-u-ca-gregory-nu-arab';
 const AR = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
@@ -988,7 +991,7 @@ const PANEL_TITLE = {shows:'هذا الأسبوع', prayers:'مواقيت الي
 function renderPanel(animate){
   const ul = document.getElementById('week-list'), hd = document.getElementById('week-hd');
   const P = CONFIG.panel;
-  if(P === 'shows'){ renderWeekPage(animate); return; }
+  if(P === 'shows'){ hd.textContent = PANEL_TITLE.shows; renderWeekPage(animate); return; }
   let rows = [];
   if(P === 'prayers') rows = prayerRows();
   else if(P === 'forecast') rows = forecastRows();
@@ -1259,7 +1262,7 @@ function boot(){
   TICKERS.forEach(loadTicker);
   if(CONFIG.panel === 'none') document.querySelector('.week').style.display = 'none';
   else if(CONFIG.panel !== 'shows') renderPanel(false);   // its own data arrives with prayers, weather, matches
-  loadPrayers(); loadMatches(); if(CONFIG.panel === 'shows') loadWeek(); loadWeather();
+  loadPrayers(); loadMatches(); if(CONFIG.panels.includes('shows')) loadWeek(); loadWeather();
   applyNight(); pixelShift();
 
   setInterval(tickClock, 1000);
@@ -1270,19 +1273,30 @@ function boot(){
   setInterval(loadPrayers, 6*3600*1000);
   setInterval(loadMatches, 30*60*1000);
   setInterval(()=>TICKERS.forEach(loadTicker), 15*60*1000);
-  if(CONFIG.panel === 'shows') setInterval(loadWeek, 6*3600*1000);
+  if(CONFIG.panels.includes('shows')) setInterval(loadWeek, 6*3600*1000);
   setInterval(loadWeather, 30*60*1000);
-  setInterval(()=>{
-    if(CONFIG.panel === 'shows' && WEEK_POOL.length > WEEK_ROWS){ WEEK_PAGE++; renderWeekPage(true); }
-    if(CONFIG.panel === 'matches'){ LIST_PAGE++; renderPanel(matchRows().length > WEEK_ROWS); }
-  }, 25*1000);
+  setInterval(nextPanel, 25*1000);
   setInterval(applyNight, 60*1000);
   setInterval(pixelShift, 4*60*1000);
   let lastDay = new Intl.DateTimeFormat('en-CA',{timeZone:CONFIG.timezone}).format(new Date());
   setInterval(()=>{
     const d = new Intl.DateTimeFormat('en-CA',{timeZone:CONFIG.timezone}).format(new Date());
-    if(d !== lastDay){ lastDay = d; loadPhotoIndex().then(() => applyBackground(true)); tickDates(); tickRamadan(); loadPrayers(); loadMatches(); if(CONFIG.panel === 'shows') loadWeek(); loadWeather(); renderPanel(false); }
+    if(d !== lastDay){ lastDay = d; loadPhotoIndex().then(() => applyBackground(true)); tickDates(); tickRamadan(); loadPrayers(); loadMatches(); if(CONFIG.panels.includes('shows')) loadWeek(); loadWeather(); renderPanel(false); }
   }, 60*1000);
+}
+
+// Every 25 s: the next of the chosen cards, or the next page of the one card (shows, matches).
+function nextPanel(){
+  const L = CONFIG.panels;
+  if(L.length > 1){
+    CONFIG.panel = L[(L.indexOf(CONFIG.panel) + 1) % L.length];
+    if(CONFIG.panel === 'shows' && WEEK_POOL.length > WEEK_ROWS) WEEK_PAGE++;   // a new page each time it comes back
+    if(CONFIG.panel === 'matches') LIST_PAGE++;
+    renderPanel(true);
+    return;
+  }
+  if(CONFIG.panel === 'shows' && WEEK_POOL.length > WEEK_ROWS){ WEEK_PAGE++; renderWeekPage(true); }
+  if(CONFIG.panel === 'matches'){ LIST_PAGE++; renderPanel(matchRows().length > WEEK_ROWS); }
 }
 
 // The launcher's card: the chosen panel only, refreshed like on the screensaver, nothing else loaded.

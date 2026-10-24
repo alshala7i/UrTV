@@ -6,7 +6,8 @@
 #   optimize/saver.sh city 'اسم' 25.86 43.49       any place: name, latitude, longitude
 #   optimize/saver.sh find-team الهلال             a club's id (Arabic or English name): id:Name | league
 #   optimize/saver.sh teams 136013:Al-Hilal 150643:Al-Zulfi    followed teams in order (up to 10)
-#   optimize/saver.sh card prayers                 beside the clock: shows prayers forecast matches verse none
+#   optimize/saver.sh card prayers,matches         beside the clock: shows prayers forecast matches verse none
+#                                                  (several, comma-separated, take turns every 25 seconds)
 #   optimize/saver.sh home-card none               on the home screen (launcher): same choices, none = off
 #   optimize/saver.sh genres Drama,Comedy          episodes card: Drama Comedy Action Crime Thriller Mystery
 #                                                  Science-Fiction Fantasy Adventure Romance Family History Horror
@@ -71,5 +72,5 @@ case "${1:-}" in
       *) echo "$out" ;;
     esac ;;
   find-team) shift; "$PY" -I optimize/find-team.py "$@" ;;   # Arabic or English name
-  *) sed -n '2,24p' "$0"; exit 1 ;;
+  *) sed -n '2,25p' "$0"; exit 1 ;;
 esac

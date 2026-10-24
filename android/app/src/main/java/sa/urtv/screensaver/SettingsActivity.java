@@ -108,7 +108,7 @@ public class SettingsActivity extends Activity {
         row("ترتيب التطبيقات المفضلة", "قائمة ترتّب فيها المفضلة بالأسهم", R.drawable.ic_star,
             new Runnable() { public void run() { openDockSettings(); } });
 
-        if ("shows".equals(prefs.panel()) || "shows".equals(prefs.homePanel())) {   // only matter for the shows card
+        if (prefs.showsPanel("shows") || "shows".equals(prefs.homePanel())) {   // only matter for the shows card
         header("جديد المسلسلات");
         row("التصنيفات", labels(Prefs.GENRES, prefs.list("genres"), "الكل"),
             R.drawable.ic_category, new Runnable() { public void run() { pickMany("genres", "التصنيفات", Prefs.GENRES); } });
@@ -371,6 +371,7 @@ public class SettingsActivity extends Activity {
 
     /** The card beside the screensaver's clock, or (home) the one on the launcher's home screen. */
     private void pickPanel(final boolean home) {
+        if (!home) { pickPanels(); return; }
         String[] labels = new String[Prefs.PANELS.length];
         String current = home ? prefs.homePanel() : prefs.panel();
         int sel = 0;
@@ -385,6 +386,24 @@ public class SettingsActivity extends Activity {
                 render();
             })
             .show();
+    }
+
+    /** Beside the clock: any of the cards, taking turns; none ticked = «لا شيء». */
+    private void pickPanels() {
+        final List<String[]> cards = new ArrayList<>();
+        for (String[] p : Prefs.PANELS) if (!"none".equals(p[0])) cards.add(p);
+        String[] labels = new String[cards.size()];
+        final boolean[] on = new boolean[cards.size()];
+        for (int i = 0; i < labels.length; i++) { labels[i] = cards.get(i)[1]; on[i] = prefs.showsPanel(cards.get(i)[0]); }
+        new AlertDialog.Builder(this, DIALOG_THEME).setTitle("بجانب الساعة (أكثر من واحد يتبادلون)")
+            .setMultiChoiceItems(labels, on, (d, i, checked) -> on[i] = checked)
+            .setPositiveButton("حفظ", (d, w) -> {
+                List<String> v = new ArrayList<>();
+                for (int i = 0; i < on.length; i++) if (on[i]) v.add(cards.get(i)[0]);
+                prefs.setPanel(v.isEmpty() ? "none" : Prefs.join(v, ","));
+                render();
+            })
+            .setNegativeButton("إلغاء", null).show();
     }
 
     private void pickRating() {
